@@ -1,0 +1,25 @@
+import db from '../../../db/database';
+
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    const { name, address, rent, bedrooms, bathrooms } = req.body;
+
+    if (!name || !address) {
+      return res.status(400).json({ error: "Name and address are required." });
+    }
+
+    db.run(
+      "INSERT INTO properties (name, address, rent, bedrooms, bathrooms) VALUES (?, ?, ?, ?, ?)",
+      [name, address, rent || null, bedrooms || null, bathrooms || null],
+      function (err) {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        res.status(201).json({ id: this.lastID, message: 'Property added successfully!' });
+      }
+    );
+  } else {
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+}
